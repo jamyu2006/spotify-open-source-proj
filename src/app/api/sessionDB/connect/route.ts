@@ -22,13 +22,17 @@ export async function POST(req: Request) {
         )
     }
 
-    try {
-        const user = await CreateUser(username, sid, false);
-    }
-    catch (e) {
-        return NextResponse.json(
-            { status: 500 }
-        )
+    //remove if for later only for testing
+    console.log("checking user name for test: ", username !== "available sessions test");
+    if (username !== "available sessions test") {
+        try {
+            const user = await CreateUser(username, sid, false);
+        }
+        catch (e) {
+            return NextResponse.json(
+                { status: 500 }
+            )
+        }
     }
     
     // If passes all checks, redirect to session page

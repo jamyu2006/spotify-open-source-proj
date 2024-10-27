@@ -88,7 +88,11 @@ export default function Home() {
           <h1>Available Sessions</h1>
           <ul>
             {sessions.map((sessions, index) => (
-              <li key={index}>{sessions.session_id}</li>
+              <li key={index} onClick={()=>{
+                sessionStorage.setItem("username", "available sessions test");
+                sessionStorage.setItem("isHost", "true");
+                connectToSession(sessions.session_id, "available sessions test", router)
+              }}>{sessions.session_id}</li>
             ))}
           </ul>
         </div>
