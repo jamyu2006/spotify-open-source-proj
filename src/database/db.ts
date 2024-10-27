@@ -105,6 +105,16 @@ export async function CreateSession(
     return code;
 }
 
+export async function GetSessions() : Promise<any> {
+
+    // Get all currently used session codes
+    const codes : any[] = await sql`
+        SELECT session_id FROM sessions
+    `
+
+    return codes;
+}
+
 // RETURNS: list of users in the session including hosts name
 //          sorted queue of all the songs in the session and their properties
 export async function GetSessionData(sid : string) : Promise<any> {

@@ -10,12 +10,39 @@ import { GetAccessToken, GetQueue } from '../database/db';
 export default function Home() {
   const [guestCode, setGuestCode] = useState(""); // Can be set as Next.js cookie and passed into server side session/[id]/page.tsx
   const [username, setUsername] = useState(""); // Can be set as Next.js cookie and passed into server side session/[id]/page.tsx
+  const [sessions, setSessions] = useState<{ session_id: string }[]>([]);
 
   const router = useRouter();
 
   
   
   useEffect(() => {
+ 
+    const getSessions = () => {
+        console.log("getting sids");
+      
+        fetch('http://localhost:3000/api/sessionDB/getSessions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(response.statusText);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("sids:", data);
+            setSessions(data);
+          })
+          .catch((error) => {
+            console.error("error:", error);
+          });
+      };
+    
+  getSessions();
 
   }, []); // Empty dependency array ensures the effect runs only once on mount
   
@@ -55,6 +82,15 @@ export default function Home() {
                 connectToSession(guestCode, username, router)}}>
                     Join
             </button>
+        </div>
+        <div className="guestoptions">
+          {/* change this css later just used the guestoptions for now */}
+          <h1>Available Sessions</h1>
+          <ul>
+            {sessions.map((sessions, index) => (
+              <li key={index}>{sessions.session_id}</li>
+            ))}
+          </ul>
         </div>
       </div>
     </main>

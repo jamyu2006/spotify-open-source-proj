@@ -13,6 +13,8 @@ export default function SessionPage({ params } : { params: { id: string} }) {
     const [atoken, setAtoken] = useState("");
 
     let sid : string = params.id;
+    console.log("params: ", params);
+    console.log("params.id: ", params.id);
 
     useEffect(() => {
         if (typeof(window) !== 'undefined' && typeof(sessionStorage) !== 'undefined') {
