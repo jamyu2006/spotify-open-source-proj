@@ -107,12 +107,27 @@ export async function CreateSession(
 
 export async function GetSessions() : Promise<any> {
 
-    // Get all currently used session codes
-    const codes : any[] = await sql`
-        SELECT session_id FROM sessions
-    `
+    //get all sessions and the hosts and users in a session(including host) - MAKE SURE TO CHECK THE LOGIC ON THIS
+    //gets all the users in a session without getting the host(thats already retrieved)
+    //i didnt write this lmfao...
+    const sessionInfo = await sql`
+        SELECT 
+            s.session_id, 
+            u.username AS host_name,
+            COUNT(us.user_id) AS user_count,
+            JSON_AGG(
+                JSON_BUILD_OBJECT(
+                    'user_id', us.user_id,
+                    'username', us.username
+                )
+            ) FILTER (WHERE us.user_id IS NOT NULL AND us.user_id != s.host_id) AS users
+        FROM sessions s
+        JOIN users u ON s.host_id = u.user_id
+        LEFT JOIN users us ON s.session_id = us.session_id
+        GROUP BY s.session_id, u.username
+    `;
 
-    return codes;
+    return sessionInfo;
 }
 
 // RETURNS: list of users in the session including hosts name

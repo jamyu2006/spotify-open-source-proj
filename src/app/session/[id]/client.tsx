@@ -1,8 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { socketIO } from '@/src/socket/client'
 import 'dotenv/config'
 import { AddSongToQueue } from '@/src/database/db'
+import ProgressBar from './progressbar'
+import { getValue } from '@/src/utils'
+import { getSocketInstance, removeSocketInstance } from '@/src/socket/socketmanager'
+import { v4 as uuidv4 } from "uuid";
 //import { render } from 'react-dom'
 
 const Toast: React.FC<{ message: string; onClose: () => void; }> = ({ message, onClose }) => {
@@ -22,8 +26,22 @@ export function Session({
   hostName: string, clientNames: string[], queue: any[]
 }) {
 
-  const socket = socketIO(sid);
-  socket.connect(); // connect to ws
+  const userSessionId = useRef(uuidv4()); // unique identifier per user session
+  console.log("session key: ", userSessionId)
+
+  const socket = getSocketInstance(sid, userSessionId.current);
+
+  useEffect(() => {
+    socket.connect();
+
+    return () => { // disconnect when component unmounts
+      removeSocketInstance(sid, userSessionId.current);
+    };
+  }, []);
+
+  //NEED TO PASS IN SOMEHTING THAT WOULD MAKE IT SO THAT THE SERVER DOES NOT RECONNECT LIKE 500 USERS
+  //const socket = socketIO(sid);
+  //socket.connect(); // connect to ws
 
 
   if (isHost === "true")
@@ -84,12 +102,10 @@ function Queue({ initQueue, socket, username, sid }: { initQueue: any[], socket:
   const [songQuery, setSongQuery] = useState<any[]>([]);
   const [toastMessage, setToastMessage] = useState('');
 
-  useEffect(() => {
+  const [progress, setProgress] = useState(0);
 
-    //songID vs song_id => when fetching straight from spotify its the former, from database its the latter
-    function getValue(data: any, key: string) {
-      return data[key] ?? data[key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-    }
+  //moved getValue to utils.ts
+  useEffect(() => {
 
     for (let i = 0; i < initQueue.length; i++) { // Initialize starting queue from connection
       const songData = {
@@ -128,6 +144,17 @@ function Queue({ initQueue, socket, username, sid }: { initQueue: any[], socket:
 
     console.log(updatedQueue);
     setSongList([...updatedQueue]);
+  });
+
+  socket.removeAllListeners("retrieveProgress");
+  socket.on("retrieveProgress", (data: {is_playing : boolean, progress_ms : number, duration_ms : number}) => {
+    //console.log("retrieved progress emission")
+    //console.log(data)
+    
+    //calc percentage of the bar can change later if need be ---------
+    const percentage = Math.round((data.progress_ms / data.duration_ms) * 100)
+
+    setProgress(percentage)
   });
 
   // Handles song submission then clears input
@@ -201,7 +228,16 @@ function Queue({ initQueue, socket, username, sid }: { initQueue: any[], socket:
   let timer: any;
   const waitTime = 500;
 
+  
+
   return (
+    <>
+    <div style={{ padding: '20px' }}>
+      <h2>Song Progress Bar</h2>
+      <ProgressBar progress={progress} />
+      <p>{progress}%</p>
+    </div>
+   
     <div id="QueueWrapper">
       <h1>Queue</h1>
       {songList.map((song) => (
@@ -249,6 +285,7 @@ function Queue({ initQueue, socket, username, sid }: { initQueue: any[], socket:
       </div>
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage('')} />}
     </div>
+    </>
   );
 }
 

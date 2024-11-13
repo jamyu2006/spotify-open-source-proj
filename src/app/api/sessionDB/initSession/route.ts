@@ -7,6 +7,10 @@ export async function POST(req: Request) {
 
     var sessionData : any = await GetSessionData(sid);
 
+    //the queue is always zero when creating a session(for host)
+    //when joining a session, the database has something in the queue for that session
+
+    /*
     //if the database returned nothing, mount the queue straight from spotify and push to the database
     if (sessionData.queue.length === 0) {
         try {
@@ -82,7 +86,7 @@ export async function POST(req: Request) {
             console.error("Error in somewhere:", error);
             NextResponse.json({ error: 'error retrieving song queue' }, { status: 500 });
         }
-    }
+    }*/
 
     return NextResponse.json(
         sessionData,
