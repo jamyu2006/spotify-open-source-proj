@@ -240,8 +240,10 @@ function Queue({ initQueue, socket, username, sid }: { initQueue: any[], socket:
    
     <div id="QueueWrapper">
       <h1>Queue</h1>
-      {songList.map((song) => (
-        <div key={song.songId}>
+      {songList.map((song, index) => (
+        <div key={`${song.songId}${index}`}> 
+        {/* duplicate songs problem - solve somehow because it completely breaks the queue display */}
+        {/* temporary solution is just to also inclue the index */}
           <Song
             id={song.songId}
             name={song.songName}

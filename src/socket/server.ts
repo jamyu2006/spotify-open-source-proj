@@ -21,6 +21,7 @@ const activeSessions: Map<string, number> = new Map();
 var checkQueueUpdatesInterval : any;
 var songtime : any;
 
+//have each session have its own interval and not one global interval --
 function startIntervals() {
     if(checkQueueUpdatesInterval)
         clearInterval(checkQueueUpdatesInterval);
@@ -110,7 +111,7 @@ io.on("connection", (socket) => {
                 console.log("no users left in the session: ", sid)
                 activeSessions.delete(sid)
                 //do we actually need this?
-                //stopIntervals();
+                stopIntervals();
             } else {
                 // Update the count for the session
                 console.log(`${users} users left in the session: `, sid)
